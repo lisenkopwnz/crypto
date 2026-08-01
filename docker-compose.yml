@@ -39,7 +39,7 @@ services:
     build: .
     command: celery -A app.celery_app worker --loglevel=info --concurrency=4
     volumes:
-      - ./app:/app/app  # Монтируем только папку с кодом
+      - ./app:/app/app
     environment:
       DATABASE_URL: postgresql://itds_user:itds_password@db:5432/itds_db
       REDIS_URL: redis://redis:6379/0
@@ -54,7 +54,7 @@ services:
     build: .
     command: celery -A app.celery_app beat --loglevel=info
     volumes:
-      - ./app:/app/app  # Монтируем только папку с кодом
+      - ./app:/app/app
     environment:
       DATABASE_URL: postgresql://itds_user:itds_password@db:5432/itds_db
       REDIS_URL: redis://redis:6379/0
