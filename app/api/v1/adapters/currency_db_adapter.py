@@ -67,4 +67,3 @@ class CurrencyDBAdapter(CurrencyDBRepository):
              db.refresh(currency)
          finally:
              db.close()
-

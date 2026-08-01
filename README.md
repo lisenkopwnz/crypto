@@ -100,3 +100,7 @@
 - CELERY_BROKER_URL=redis://redis:6379/0
 - CELERY_RESULT_BACKEND=redis://redis:6379/0
 - DERIBIT_BASE_URL=https://test.deribit.com/api/v2
+
+## 2. Запуск 
+
+docker compose up -d --build
