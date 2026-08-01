@@ -1,7 +1,6 @@
 from fastapi import APIRouter, Depends
 
 from app.api.v1.adapters.currency_db_adapter import CurrencyDBAdapter
-from app.api.v1.repositories.currency_db_repository import CurrencyDBRepository
 from app.api.v1.schemas.requests.currency import TickerParams
 from app.api.v1.usecase.currency_data_usecase import CurrencyDataUseCase
 from app.api.v1.usecase.last_currency_price import LastCurrencyPriceUseCase

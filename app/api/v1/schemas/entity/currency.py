@@ -1,6 +1,4 @@
-from datetime import date
-
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field
 
 
 class CurrencyEntity(BaseModel):
