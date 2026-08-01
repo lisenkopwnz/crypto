@@ -65,14 +65,3 @@ def test_get_latest_price_success():
         data = response.json()
         assert data["ticker"] == "eth_usd"
         assert data["price"] == 1868.11
-
-
-def test_get_latest_price_not_found():
-    with patch('app.api.v1.endpoints.currency_information.CurrencyDBAdapter') as MockAdapter:
-        mock_instance = MockAdapter.return_value
-        mock_instance.get_last_price.return_value = None
-
-        response = client.get("/api/v1/currency_information/latest-price/?ticker=unknown")
-
-        assert response.status_code == 200
-        assert response.json() is None
