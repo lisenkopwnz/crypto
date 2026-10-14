@@ -1,70 +1,38 @@
 services:
-  web:
+  app:
     build: .
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
-    volumes:
-      - ./app:/app/app
-      - ./tests:/app/tests
-    ports:
-      - "8000:8000"
+    env_file:
+      - path: .env
+        required: false
     environment:
-      DATABASE_URL: postgresql://itds_user:itds_password@db:5432/itds_db
-      REDIS_URL: redis://redis:6379/0
-      CELERY_BROKER_URL: redis://redis:6379/0
-      CELERY_RESULT_BACKEND: redis://redis:6379/0
+      POSTGRES_HOST: db
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: ${POSTGRES_USER:-crypto}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-crypto}
+      POSTGRES_DB: ${POSTGRES_DB:-crypto}
+    ports:
+      - "${APP_PORT:-8000}:8000"
     depends_on:
-      - db
-      - redis
-      - celery-worker
+      db:
+        condition: service_healthy
+    restart: unless-stopped
 
   db:
-    image: postgres:15-alpine
-    restart: always
+    image: postgres:17-alpine
     environment:
-      POSTGRES_USER: itds_user
-      POSTGRES_PASSWORD: itds_password
-      POSTGRES_DB: itds_db
-    volumes:
-      - pgdata:/var/lib/postgresql/data
+      POSTGRES_USER: ${POSTGRES_USER:-crypto}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-crypto}
+      POSTGRES_DB: ${POSTGRES_DB:-crypto}
     ports:
-      - "5432:5432"
-
-  redis:
-    image: redis:7-alpine
-    ports:
-      - "6379:6379"
-    restart: always
-
-  celery-worker:
-    build: .
-    command: celery -A app.celery_app worker --loglevel=info --concurrency=4
+      - "${DB_PORT:-5432}:5432"
     volumes:
-      - ./app:/app/app
-    environment:
-      DATABASE_URL: postgresql://itds_user:itds_password@db:5432/itds_db
-      REDIS_URL: redis://redis:6379/0
-      CELERY_BROKER_URL: redis://redis:6379/0
-      CELERY_RESULT_BACKEND: redis://redis:6379/0
-    depends_on:
-      - db
-      - redis
-    restart: always
-
-  celery-beat:
-    build: .
-    command: celery -A app.celery_app beat --loglevel=info
-    volumes:
-      - ./app:/app/app
-    environment:
-      DATABASE_URL: postgresql://itds_user:itds_password@db:5432/itds_db
-      REDIS_URL: redis://redis:6379/0
-      CELERY_BROKER_URL: redis://redis:6379/0
-      CELERY_RESULT_BACKEND: redis://redis:6379/0
-    depends_on:
-      - db
-      - redis
-      - celery-worker
-    restart: always
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
 
 volumes:
-  pgdata:
+  postgres_data:

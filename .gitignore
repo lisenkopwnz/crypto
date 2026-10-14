@@ -5,7 +5,14 @@ build/
 dist/
 wheels/
 *.egg-info
+.pytest_cache/
+.ruff_cache/
 
 # Virtual environments
 .venv
 uv.exe
+
+.env
+.idea/
+.vscode/
+celerybeat-schedule*

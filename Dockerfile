@@ -1,29 +1,24 @@
 FROM python:3.12-slim
 
+COPY --from=ghcr.io/astral-sh/uv:0.10.5 /uv /usr/local/bin/uv
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    UV_COMPILE_BYTECODE=1 \
+    UV_LINK_MODE=copy \
+    UV_PROJECT_ENVIRONMENT=/opt/venv \
+    PATH="/opt/venv/bin:$PATH"
+
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    gcc \
-    netcat-openbsd && \
-    rm -rf /var/lib/apt/lists/*
-
-RUN python -m pip install --upgrade pip && pip install uv
-
-COPY pyproject.toml uv.lock* ./
-
-ENV VIRTUAL_ENV="/opt/venv"
-RUN uv venv /opt/venv --clear && \
-    uv pip install --no-cache-dir -e .
+COPY pyproject.toml uv.lock ./
+RUN uv sync --frozen --no-dev --group deploy
 
 COPY . .
 
-COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
-
-ENV PATH="/opt/venv/bin:$PATH"
+RUN useradd --create-home appuser
+USER appuser
 
 EXPOSE 8000
 
-ENTRYPOINT ["/entrypoint.sh"]
-
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["sh", "-c", "alembic upgrade head && exec supervisord -c docker/supervisord.conf"]
